@@ -28,7 +28,7 @@ jobs:
           source venv/bin/activate
 
       - name: Install package
-        run: pip install langchain
+        run: pip install langchain_google_genai
 
       - name: Install dependencies
         run: pip install -r requirements.txt
