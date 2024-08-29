@@ -1,16 +1,40 @@
-from langchain_google_genai import GoogleGenerativeAI
-gemini_api_key = "AIzaSyCqE-v8w4z4KVysRZ2fIv6s7NdOko-fbZg"
+import numpy as np
+from flask import Flask, request, jsonify, render_template, url_for
+import pickle
 
-llm = GoogleGenerativeAI(
-    model="gemini-pro",  # Replace with the desired Gemini model
-    google_api_key=gemini_api_key
-)
 
-if __name__ == "__main__":
-  gemini_api_key = gemini_api_key
-  text = input("Enter the text you want to summarize: ")
-  max_tokens = int(input("Enter the maximum number of tokens for the summary (optional, default is 128): ") or 128)
+app = Flask(__name__)
+model = pickle.load(open('randomForestRegressor.pkl','rb'))
 
-  prompt = [f"Summarize the following text:\n\n{text}"]
-  response = llm.generate(prompt, max_tokens=max_tokens)
-  print(f"Summary:\n{response}")
+
+@app.route('/')
+def home():
+    #return 'Hello World'
+    return render_template('home.html')
+    #return render_template('index.html')
+
+@app.route('/predict',methods = ['POST'])
+def predict():
+    int_features = [float(x) for x in request.form.values()]
+    final_features = [np.array(int_features)]
+    prediction = model.predict(final_features)
+    print(prediction[0])
+
+    #output = round(prediction[0], 2)
+    return render_template('home.html', prediction_text="AQI for Jaipur {}".format(prediction[0]))
+
+@app.route('/predict_api',methods=['POST'])
+def predict_api():
+    '''
+    For direct API calls trought request
+    '''
+    data = request.get_json(force=True)
+    prediction = model.predict([np.array(list(data.values()))])
+
+    output = prediction[0]
+    return jsonify(output)
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
